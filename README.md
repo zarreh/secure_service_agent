@@ -51,7 +51,7 @@ criteria.
 | 1 · Data foundation (policy KB, accounts) | done |
 | 2 · Guardrail nodes (input/output scan, identity gate) | done |
 | 3 · Specialist agents (network/billing/account/escalation) | done |
-| 4 · API + observability | not started |
+| 4 · API + observability | done |
 | 5 · Frontend | not started |
 | 6 · Evaluation + docs | not started |
 | 7 · Deployment prep | not started |

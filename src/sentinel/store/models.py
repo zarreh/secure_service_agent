@@ -8,6 +8,7 @@ state or in a log line.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date, datetime
 
 from pydantic import BaseModel
@@ -55,3 +56,33 @@ class MemoryEvent(BaseModel):
     agent_used: str
     resolution_type: str
     response_summary: str
+
+
+@dataclass(frozen=True)
+class RunRecord:
+    """A persisted chat run (store/run_store.py, docs/PLAN.md Phase 4).
+
+    Deliberately has no `pin` field — the PIN is never persisted anywhere,
+    including here (D-A4-2). `account_id` is kept for lookup; nothing else
+    account-specific lives on the run record itself, only in its events.
+    """
+
+    id: str
+    question: str
+    account_id: str
+    status: str  # "running" | "completed" | "failed"
+    created_at: str
+    updated_at: str
+    response: str | None
+    error: str | None
+
+
+@dataclass(frozen=True)
+class RunEvent:
+    """One persisted node step, in the same shape the SSE stream emits."""
+
+    run_id: str
+    sequence: int
+    node: str
+    payload_json: str
+    created_at: str

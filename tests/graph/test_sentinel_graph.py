@@ -8,57 +8,19 @@ from __future__ import annotations
 from sentinel.graph.builder import SentinelGraph, build_sentinel_graph
 from sentinel.graph.protocols import SupervisorReviewChain
 from sentinel.graph.state import SentinelState
-from sentinel.schemas.escalation import EscalationHandoff
-from sentinel.schemas.guardrail import InjectionScanResult, LeakScanResult
-from sentinel.schemas.review import ReviewResult
 from sentinel.schemas.specialist import SpecialistResponse
-from sentinel.schemas.supervisor import Specialist, SupervisorRoute
+from sentinel.schemas.supervisor import Specialist
 from sentinel.settings import Settings
 from sentinel.store.account_store import AccountStore
-
-
-class _NoOpInjectionChain:
-    def invoke(self, input: dict[str, str]) -> InjectionScanResult:
-        return InjectionScanResult(is_injection=False, confidence=0.0, reason="clean")
-
-
-class _NoOpLeakChain:
-    def invoke(self, input: dict[str, object]) -> LeakScanResult:
-        return LeakScanResult(leaks_sensitive_info=False, confidence=0.0, reason="clean")
-
-
-class _FixedRouteChain:
-    def __init__(self, specialist: Specialist) -> None:
-        self._specialist = specialist
-
-    def invoke(self, input: dict[str, str]) -> SupervisorRoute:
-        return SupervisorRoute(specialist=self._specialist, reason="stub route")
-
-
-class _GroundedSpecialistChain:
-    def invoke(self, input: dict[str, object]) -> SpecialistResponse:
-        return SpecialistResponse(draft="Here is your answer.", citations=["stub-clause"])
-
-
-class _AlwaysPassingReviewChain:
-    def invoke(self, input: dict[str, object]) -> ReviewResult:
-        return ReviewResult(grounded=True, in_scope=True, reason="fine")
-
-
-class _AlwaysFailingReviewChain:
-    def invoke(self, input: dict[str, object]) -> ReviewResult:
-        return ReviewResult(grounded=False, in_scope=True, reason="not grounded")
-
-
-class _StubEscalationChain:
-    def invoke(self, input: dict[str, object]) -> EscalationHandoff:
-        return EscalationHandoff(
-            issue="stub issue",
-            history_summary="none",
-            attempted="none",
-            reason="stub reason",
-            urgency="low",
-        )
+from tests.fixtures.stub_chains import (
+    AlwaysFailingReviewChain,
+    AlwaysPassingReviewChain,
+    FixedRouteChain,
+    GroundedSpecialistChain,
+    NoOpInjectionChain,
+    NoOpLeakChain,
+    StubEscalationChain,
+)
 
 
 def _build_graph(
@@ -70,14 +32,14 @@ def _build_graph(
     return build_sentinel_graph(
         Settings(pin_max_attempts=3),
         account_store,
-        injection_chain=_NoOpInjectionChain(),
-        leak_chain=_NoOpLeakChain(),
-        route_chain=_FixedRouteChain(route_specialist),
-        network_chain=_GroundedSpecialistChain(),
-        billing_chain=_GroundedSpecialistChain(),
-        account_chain=_GroundedSpecialistChain(),
-        escalation_chain=_StubEscalationChain(),
-        review_chain=review_chain or _AlwaysPassingReviewChain(),
+        injection_chain=NoOpInjectionChain(),
+        leak_chain=NoOpLeakChain(),
+        route_chain=FixedRouteChain(route_specialist),
+        network_chain=GroundedSpecialistChain(),
+        billing_chain=GroundedSpecialistChain(),
+        account_chain=GroundedSpecialistChain(),
+        escalation_chain=StubEscalationChain(),
+        review_chain=review_chain or AlwaysPassingReviewChain(),
     )
 
 
@@ -134,7 +96,7 @@ def test_review_failure_retries_once_then_gives_up(
 ) -> None:
     account_id, real_pin = list(known_pins.items())[6]
     graph = _build_graph(
-        account_store, review_chain=_AlwaysFailingReviewChain(), route_specialist="network"
+        account_store, review_chain=AlwaysFailingReviewChain(), route_specialist="network"
     )
 
     initial: SentinelState = {
@@ -159,14 +121,14 @@ def test_output_guardrail_blocks_a_pin_leaking_draft(
     graph = build_sentinel_graph(
         Settings(pin_max_attempts=3),
         account_store,
-        injection_chain=_NoOpInjectionChain(),
-        leak_chain=_NoOpLeakChain(),
-        route_chain=_FixedRouteChain("account"),
-        network_chain=_GroundedSpecialistChain(),
-        billing_chain=_GroundedSpecialistChain(),
+        injection_chain=NoOpInjectionChain(),
+        leak_chain=NoOpLeakChain(),
+        route_chain=FixedRouteChain("account"),
+        network_chain=GroundedSpecialistChain(),
+        billing_chain=GroundedSpecialistChain(),
         account_chain=_LeakySpecialistChain(),
-        escalation_chain=_StubEscalationChain(),
-        review_chain=_AlwaysPassingReviewChain(),
+        escalation_chain=StubEscalationChain(),
+        review_chain=AlwaysPassingReviewChain(),
     )
 
     initial: SentinelState = {

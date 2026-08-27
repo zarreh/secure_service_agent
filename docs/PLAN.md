@@ -107,15 +107,35 @@ API key). The dedicated `make eval` canonical scenario harness against real
 models is Phase 6's job, same as A7's phasing — Phase 3 proves the wiring is
 correct, Phase 6 measures it against real model behavior.
 
-### Phase 4 — API + observability
-- SSE stream over `astream_events`, filtered the way A3 does
+### Phase 4 — API + observability ✅
+- [x] `POST /chat` starts a run as a background task
+  (`api/run_executor.py::execute_chat`, same shape as A2/A3's
+  `execute_investigation`/`execute_conversation`); `GET /chat/{run_id}`
+  returns the durable record + per-node cost; `GET /chat/{run_id}/events`
+  replays then tails via SSE, filtered the way A3 does
   (`name == metadata["langgraph_node"]`).
-- `structlog` structured logging, correlation id per request.
-- LangSmith/Langfuse tracing via `zarreh_agentkit`.
-- Audit log persisted to SQLite.
+- [x] `structlog` structured logging, correlation id per request
+  (unchanged from Phase 0).
+- [x] LangSmith/Langfuse tracing via `zarreh_agentkit.observability.build_tracing_callbacks`,
+  attached as a graph-invocation callback in `execute_chat`.
+- [x] Audit log: **no separate table** — `run_store.append_event` already
+  persists every node's output (`input_verdict`, `identity`, `route`,
+  `review`, `output_verdict`) in order, so the replay/events endpoint
+  built for streaming *is* the audit trail (D-A4-7).
+- [x] `POST /chat` never pre-checks whether `account_id` exists (D-A4-6) —
+  consistent with D-A4-2's "no enumeration oracle" all the way to the HTTP
+  layer.
+- [x] The PIN is never persisted: not on the `RunRecord`, not in any node
+  output, not in a log line — verified directly by
+  `test_create_response_never_echoes_the_pin` and
+  `test_events_never_persist_the_pin`.
 
-**Exit criteria:** trace visible end-to-end in LangSmith; audit log records
-every guardrail decision.
+**Exit criteria:** Full API integration tests
+(`tests/api/test_chat.py`, `tests/store/test_run_store.py`) cover create →
+get → events for a happy path, a wrong-PIN path, and unknown-run 404s, with
+the graph fully stubbed (no network, no API key) — 56/56 tests green.
+Real LangSmith trace visibility depends on a configured API key and is a
+manual verification step at deploy time, not a CI assertion.
 
 ### Phase 5 — Frontend
 - Minimal Next.js chat UI + an audit-trail view (no attack console yet —

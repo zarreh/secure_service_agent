@@ -71,5 +71,7 @@ nav:
           - D-A4-3 Deterministic layer wins: architecture/decisions/D-A4-3-deterministic-layer-wins.md
           - D-A4-4 Persistent lockout counter: architecture/decisions/D-A4-4-persistent-lockout-counter.md
           - D-A4-5 No LLM-chosen tool arguments: architecture/decisions/D-A4-5-no-llm-chosen-tool-arguments.md
+          - D-A4-6 No enumeration via HTTP status: architecture/decisions/D-A4-6-no-enumeration-via-http-status.md
+          - D-A4-7 Audit log is the event store: architecture/decisions/D-A4-7-audit-log-is-the-event-store.md
   - Evidence:
       - Evaluation: evidence/evaluation.md
