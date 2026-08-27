@@ -29,7 +29,7 @@ down:
 
 data:
 	uv run python -m data.build_policy_kb
-	uv run python -m data.build_accounts
+	uv run python -m data.generate_accounts
 
 docs:
 	uv run mkdocs serve

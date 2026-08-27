@@ -18,7 +18,8 @@ occurrence. This log tracks both.
 | 9 | `builder.py` as the only wiring file; node filename == registered node name == trace span name | `graph/builder.py` (A3/A7/A12) | Adopted from Phase 0 | **Essential convention**, not shared code |
 | 10 | Narrow state projections per node | `graph/state.py` (A2/A3/A7/A12, and independently UT wk11/wk13) | Adopted from Phase 0 | **Essential convention** — now evidenced in six independent places |
 | 11 | Policy-gate-shaped guardrail (pre-flight + post-flight, deterministic layer under an LLM layer) | A3's `screen_rules`/`post_flight` | A4 is the **second** instance — building locally in `sentinel.guardrails`, not yet extracted | **Candidate for `zarreh_agentkit.guardrails` extraction** — flag for a follow-up ADR once A4's `base` ships |
-| 12 | Structured clause lookup over a versioned rulebook, not vector search | A7's `data/build_rulebook.py` | Adopted for `data/build_policy_kb.py` (Phase 1) | Incidental — same technique, different source document |
+| 12 | ✅ Structured clause lookup over a versioned rulebook, not vector search | A7's `data/build_rulebook.py` | Adopted for `data/build_policy_kb.py` (Phase 1) | Incidental — same technique, different source document |
+| 15 | Salted PBKDF2 PIN hashing (D-A4-2) | New in A4 — no prior app stores a credential this shape | `sentinel/store/pin_hash.py` | New pattern; log here as a `zarreh_agentkit` candidate if a second app ever stores a low-entropy credential |
 | 13 | SQLite-backed durable persistence (`SqliteSaver` / plain audit table) | A7's `D-A7-2` | Adopted for the audit log (Phase 4) | Incidental |
 | 14 | Two-layer canonical + attack eval set | A7/A3's Layer 1 canonical harness | To be built in Phase 6, extended with an attack-scenario layer specific to A4 | **Essential** — A4's eval set needs a labelled expected-block-layer field the others don't have |
 

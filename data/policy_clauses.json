@@ -1,0 +1,38 @@
+[
+  {
+    "clause_id": "clause-identity-verification",
+    "title": "Identity Verification",
+    "body": "Before any account-specific information is shared, the customer must be verified. Verification requires a matching account PIN for the account in question. General information that is not tied to a specific account, such as generic network troubleshooting steps or public plan pricing, may be shared without verification. Agents must never reveal, confirm, or hint at a customer's PIN, and must never read a PIN back to a caller. If a caller cannot verify, the agent offers general help only and explains that account details require verification.",
+    "page": 1
+  },
+  {
+    "clause_id": "clause-data-privacy",
+    "title": "Data Privacy",
+    "body": "Customer records, plan details, billing history, and past interactions are confidential. An agent may only discuss the details of the account the caller has verified against. An agent must never reference or compare against another customer's account, usage, or history. If a request would require exposing another customer's data, the agent declines.",
+    "page": 1
+  },
+  {
+    "clause_id": "clause-network-support",
+    "title": "Network Support",
+    "body": "For connectivity issues such as dropped calls, weak signal, or slow data, agents provide standard troubleshooting: confirm the device has current carrier settings, toggle airplane mode, reseat or check the SIM, test in a different location, and enable wifi calling for poor indoor coverage. These general steps do not require verification. Account-specific network actions, such as checking tower status tied to a service address, reprovisioning a line, or raising a field-technician ticket, require a verified customer. If the issue cannot be resolved remotely, the agent raises a network ticket and sets the expectation of a follow-up within 48 hours.",
+    "page": 2
+  },
+  {
+    "clause_id": "clause-billing-and-refunds",
+    "title": "Billing and Refunds",
+    "body": "Agents may explain charges, allowances, overage, and plan pricing for a verified customer using that customer's plan record. Data overage is billed only when usage exceeds the plan allowance; usage within the allowance is never an overage charge, and the agent should explain other causes such as one-time fees or proration. Refunds and credits are reviewed against this policy and are processed by the billing team, not issued directly by a support agent. A refund is generally appropriate when the customer was charged in error, billed a duplicate fee, or charged for a service they did not receive or that did not work as sold. A refund is generally not appropriate for usage that was correctly billed within the plan, for buyer's remorse on a completed purchase, or where the charge matches the customer's plan and usage. When a refund is appropriate under this policy, the agent confirms the request is valid and routes it to the billing team to process, setting a follow-up expectation of 24 hours. When it is not appropriate, the agent declines politely and explains the specific reason.",
+    "page": 2
+  },
+  {
+    "clause_id": "clause-account-management",
+    "title": "Account Management",
+    "body": "Routine account requests for a verified customer, such as explaining a plan, describing an upgrade path, or updating contact preferences, may be handled directly. High-risk operations require a separate step-up authorization beyond basic PIN verification. High-risk operations include suspending or cancelling service, terminating an account, resetting a PIN, and transferring account ownership. If a verified customer requests a high-risk operation without the step-up authorization on record, the agent does not perform the operation and connects the customer to a senior account manager. Basic PIN verification alone never authorizes a high-risk operation.",
+    "page": 2
+  },
+  {
+    "clause_id": "clause-escalation",
+    "title": "Escalation",
+    "body": "A case is escalated when it is unresolved after standard steps, when it exceeds agent authority such as a refund that must be processed by the billing team or a high-risk account operation, when the customer is abusive, or when the request is outside the support scope. On escalation the agent builds a structured handoff that records the customer, the issue, the history, what was attempted, and the reason for escalation, and assigns an urgency level. Any case that follows a blocked or suspicious input, such as a detected attempt to manipulate the assistant, is treated as a possible security incident. Such cases are escalated at high urgency and tagged for security review so a human reviewer sees them immediately.",
+    "page": 3
+  }
+]

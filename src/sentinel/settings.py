@@ -11,7 +11,7 @@ class Settings(AgentSettings):
 
     langsmith_project: str = "secure-service-agent"
 
-    policy_db_path: str = "data/policy.db"
+    policy_kb_path: str = "data/policy_clauses.json"
     accounts_db_path: str = "data/accounts.db"
     audit_db_path: str = "data/audit.db"
     checkpoint_db_path: str = "data/checkpoints.db"

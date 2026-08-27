@@ -48,7 +48,7 @@ criteria.
 | Phase | State |
 |---|---|
 | 0 · Scaffold + walking skeleton | done |
-| 1 · Data foundation (policy KB, accounts) | not started |
+| 1 · Data foundation (policy KB, accounts) | done |
 | 2 · Guardrail nodes (input/output scan, identity gate) | not started |
 | 3 · Specialist agents (network/billing/account/escalation) | not started |
 | 4 · API + observability | not started |
@@ -61,6 +61,7 @@ criteria.
 ```bash
 uv sync --extra dev
 cp .env.example .env      # add SENTINEL_OPENAI_API_KEY
+make data                 # generate the synthetic accounts + policy KB
 make dev                  # http://localhost:8000/healthz
 make check                # ruff, mypy --strict, import-linter, pytest
 ```

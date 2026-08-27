@@ -47,15 +47,20 @@ and advisory angle.
 **Exit criteria:** `make test` passes; `make dev` healthz returns 200; CI
 green.
 
-### Phase 1 — Data foundation
-- Build `data/build_policy_kb.py` — parse `policy_kb.pdf` into a typed,
-  retrievable clause list (mirrors A7's rulebook-as-code approach).
-- Build `data/build_accounts.py` — parse `plans.csv`/`accounts.csv` into a
-  typed, seeded SQLite store; seed `customer_memory` similarly.
-- Pydantic schema validation on every build output.
+### Phase 1 — Data foundation ✅
+- [x] `data/build_policy_kb.py` — parses `policy_kb.pdf` into a typed,
+  versioned clause list (mirrors A7's rulebook-as-code approach); output
+  `data/policy_clauses.json` is committed, source PDF is not (D-A4-1).
+- [x] `data/generate_accounts.py` — generates an **independent** synthetic
+  account/plan/memory population rather than parsing the course CSVs
+  (D-A4-1); output `data/accounts.db` is gitignored, rebuilt by `make data`.
+- [x] PINs stored as PBKDF2-HMAC-SHA256 hash + salt, never plaintext
+  (D-A4-2); `AccountStore.verify_pin` never returns the stored hash/salt and
+  does not distinguish "wrong PIN" from "unknown account."
+- [x] `sentinel/store/`: `AccountStore`, `policy_kb` loader, Pydantic models.
 
 **Exit criteria:** `make data` regenerates deterministically; store schema
-tests pass.
+tests pass (17/17 green, ruff/mypy/import-linter clean).
 
 ### Phase 2 — Guardrail nodes
 - Input guardrail: regex/deny-list layer (deterministic, always on) + an LLM
