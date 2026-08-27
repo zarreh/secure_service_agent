@@ -41,9 +41,10 @@ portfolio.
 
 ## Status
 
-Phase 0 scaffold: repo template, walking-skeleton graph, API + streaming path,
-CI. See `docs/PLAN.md` for the full build plan and phase-by-phase exit
-criteria.
+The full security envelope is built and tested end to end: guardrail nodes,
+PIN identity gate, four specialists, supervisor review, background execution
+with an audit-log-doubling event store, and a minimal Next.js frontend. See
+`docs/PLAN.md` for the full build plan and phase-by-phase exit criteria.
 
 | Phase | State |
 |---|---|
@@ -52,7 +53,7 @@ criteria.
 | 2 · Guardrail nodes (input/output scan, identity gate) | done |
 | 3 · Specialist agents (network/billing/account/escalation) | done |
 | 4 · API + observability | done |
-| 5 · Frontend | not started |
+| 5 · Frontend | done |
 | 6 · Evaluation + docs | not started |
 | 7 · Deployment prep | not started |
 
@@ -64,6 +65,7 @@ cp .env.example .env      # add SENTINEL_OPENAI_API_KEY
 make data                 # generate the synthetic accounts + policy KB
 make dev                  # http://localhost:8000/healthz
 make check                # ruff, mypy --strict, import-linter, pytest
+make frontend-dev         # http://localhost:3000 — use a demo account/PIN from `make data`'s output
 ```
 
 ## Layout

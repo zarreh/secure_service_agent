@@ -137,9 +137,29 @@ the graph fully stubbed (no network, no API key) — 56/56 tests green.
 Real LangSmith trace visibility depends on a configured API key and is a
 manual verification step at deploy time, not a CI assertion.
 
-### Phase 5 — Frontend
-- Minimal Next.js chat UI + an audit-trail view (no attack console yet —
-  that is `pro` tier, Phase 8).
+### Phase 5 — Frontend ✅
+- [x] Minimal Next.js chat UI (`frontend/`): account id / PIN / question
+  form → `RunConsole` → SSE stream of node events → final response, no
+  attack console yet (that is `pro` tier, Phase 8).
+- [x] Audit-trail view: `TraceTimeline` (node-by-node steps) +
+  `GuardrailStrip` (input/identity/output verdicts, read straight out of
+  the same trace events — D-A4-7's "the audit log is the event store"
+  applies to the frontend too, not just the backend) + `CostMeter`.
+- [x] Static export (`output: "export"`), no Tailwind/Zod/generated
+  types/Playwright — deliberately leaner than A3's frontend, proportionate
+  to a demo this size (docs/HARVEST.md).
+- [x] `data/generate_accounts.py` prints three demo account/PIN pairs to
+  stdout on `make data`, since the PIN is never recoverable from
+  `accounts.db` after generation (D-A4-2) and the frontend has nothing
+  hard-coded to try.
+
+**Exit criteria:** `npm run build` succeeds (static export); `tsc --noEmit`
+clean; `next dev` serves the form with all fields present. A full live run
+(form submit → SSE stream → guardrail strip → response) needs a running
+backend with a real `SENTINEL_OPENAI_API_KEY` and is a deploy-time manual
+check, same caveat as Phase 4's LangSmith trace visibility — the backend
+side of this exact path is already covered by
+`tests/api/test_chat.py::test_events_replay_to_end` with the graph stubbed.
 
 ### Phase 6 — Evaluation + documentation
 - Layer 1 canonical scenario set: legitimate requests across all four

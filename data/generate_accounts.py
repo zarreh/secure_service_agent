@@ -192,10 +192,14 @@ def main() -> int:
     OUTPUT.unlink(missing_ok=True)
     connection = sqlite3.connect(OUTPUT)
     try:
-        generate_accounts_db(connection)
+        pins = generate_accounts_db(connection)
     finally:
         connection.close()
     print(f"Wrote {_ACCOUNT_COUNT} synthetic accounts to {OUTPUT}")
+    print("\nDemo credentials to try in the frontend (synthetic, printed once — the")
+    print("PIN is never recoverable from accounts.db itself, D-A4-2):")
+    for account_id, pin in list(pins.items())[:3]:
+        print(f"  {account_id}  PIN {pin}")
     return 0
 
 
