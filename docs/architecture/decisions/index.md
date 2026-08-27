@@ -4,3 +4,4 @@
 - [D-A4-2 PBKDF2-HMAC-SHA256 for PIN storage, never plaintext](D-A4-2-pbkdf2-pin-hashing.md)
 - [D-A4-3 The deterministic guardrail layer wins, and short-circuits the LLM call](D-A4-3-deterministic-layer-wins.md)
 - [D-A4-4 The PIN lockout counter lives in the account store, not in graph state](D-A4-4-persistent-lockout-counter.md)
+- [D-A4-5 Specialists never let the model choose an account identifier](D-A4-5-no-llm-chosen-tool-arguments.md)

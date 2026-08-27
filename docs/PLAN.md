@@ -79,15 +79,33 @@ LLM stub is never called once the deterministic layer blocks). Real
 specialist tool scoping — the *positive* enforcement of "only the verified
 account's data" — lands in Phase 3; Phase 2 covers the guardrail layer only.
 
-### Phase 3 — Specialist agents
-- `context_loader`: per-customer redacted long-term memory.
-- `supervisor`: routes to `network_agent` / `billing_agent` /
-  `account_agent` / `escalation_agent` over typed tools.
-- `supervisor_review`: grounding + scope check on the specialist's draft
-  before it reaches the output guardrail.
+### Phase 3 — Specialist agents ✅
+- [x] `context_loader`: per-customer history, mapped to the narrower
+  `HistoryEvent` schema at the boundary rather than carrying a store row
+  into graph state.
+- [x] `supervisor`: routes to `network_agent` / `billing_agent` /
+  `account_agent` / `escalation_agent` — **not** over LLM-called tools.
+  Deliberate deviation from the source's ReAct-over-tools design: no
+  specialist exposes a tool argument that could name an account; each node
+  fetches its own context deterministically by the identity-gate-verified
+  `account_id` (D-A4-5).
+- [x] `supervisor_review`: grounding + scope check on the specialist's draft,
+  retrying the same specialist once on failure, then a deterministic
+  `give_up` — the retry loop is bounded and provably terminates
+  (`graph/edges.py::route_after_review`).
+- [x] Full graph wired in `build_sentinel_graph` (`graph/builder.py`):
+  guardrail → identity gate → context loader → supervisor → specialist →
+  review → output guardrail → publish, plus four deterministic terminal
+  nodes (`blocked_input_response`, `verification_required`, `give_up`,
+  `blocked_output_response`).
 
-**Exit criteria:** `make eval` canonical (non-attack) scenarios route to the
-correct specialist and produce a grounded response.
+**Exit criteria:** Full-graph integration tests
+(`tests/graph/test_sentinel_graph.py`) exercise the happy path, an
+input-guardrail block, a failed-verification path, the review retry/give-up
+loop, and an output-guardrail block, all with stubbed chains (no network, no
+API key). The dedicated `make eval` canonical scenario harness against real
+models is Phase 6's job, same as A7's phasing — Phase 3 proves the wiring is
+correct, Phase 6 measures it against real model behavior.
 
 ### Phase 4 — API + observability
 - SSE stream over `astream_events`, filtered the way A3 does

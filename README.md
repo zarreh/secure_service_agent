@@ -50,7 +50,7 @@ criteria.
 | 0 · Scaffold + walking skeleton | done |
 | 1 · Data foundation (policy KB, accounts) | done |
 | 2 · Guardrail nodes (input/output scan, identity gate) | done |
-| 3 · Specialist agents (network/billing/account/escalation) | not started |
+| 3 · Specialist agents (network/billing/account/escalation) | done |
 | 4 · API + observability | not started |
 | 5 · Frontend | not started |
 | 6 · Evaluation + docs | not started |

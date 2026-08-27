@@ -16,8 +16,12 @@ from __future__ import annotations
 
 from typing import TypedDict
 
+from sentinel.schemas.escalation import EscalationHandoff
 from sentinel.schemas.guardrail import GuardrailVerdict
+from sentinel.schemas.history import HistoryEvent
 from sentinel.schemas.identity import IdentityResult
+from sentinel.schemas.review import ReviewResult
+from sentinel.schemas.supervisor import Specialist
 
 
 class SkeletonState(TypedDict):
@@ -48,8 +52,25 @@ class SentinelState(TypedDict, total=False):
     pin: str
     identity: IdentityResult
 
+    # context loader (Phase 3)
+    history: list[HistoryEvent]
+
+    # supervisor routing (Phase 3)
+    route: Specialist
+    route_reason: str
+
     # specialist draft (Phase 3)
     draft: str
+    citations: list[str]
+    specialist_context: str
+    escalation: EscalationHandoff
+
+    # supervisor review (Phase 3) — grounding + scope check before the output guardrail
+    review: ReviewResult
+    revision_count: int
 
     # output guardrail
     output_verdict: GuardrailVerdict
+
+    # final customer-facing text, set by whichever terminal node runs
+    response: str
