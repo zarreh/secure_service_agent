@@ -54,7 +54,7 @@ with an audit-log-doubling event store, and a minimal Next.js frontend. See
 | 3 · Specialist agents (network/billing/account/escalation) | done |
 | 4 · API + observability | done |
 | 5 · Frontend | done |
-| 6 · Evaluation + docs | not started |
+| 6 · Evaluation + docs | done |
 | 7 · Deployment prep | not started |
 
 ## Run it
@@ -65,6 +65,7 @@ cp .env.example .env      # add SENTINEL_OPENAI_API_KEY
 make data                 # generate the synthetic accounts + policy KB
 make dev                  # http://localhost:8000/healthz
 make check                # ruff, mypy --strict, import-linter, pytest
+make eval                 # guardrail attack scenarios (no API key needed)
 make frontend-dev         # http://localhost:3000 — use a demo account/PIN from `make data`'s output
 ```
 

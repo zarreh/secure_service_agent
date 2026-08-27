@@ -18,7 +18,12 @@ escalation — where every message passes through:
 5. **Output guardrail** — regex + LLM leak/PII scan, before the customer sees
    anything.
 
-Every step is logged to an audit trail.
+Every step is logged to an audit trail — see [D-A4-7](architecture/decisions/D-A4-7-audit-log-is-the-event-store.md).
+
+A minimal Next.js frontend (`frontend/`) drives the API and streams the
+trace live; a `make eval` scenario library
+([evidence](evidence/evaluation.md)) checks the guardrail layers with no
+API key required.
 
 ## Key design decisions
 
