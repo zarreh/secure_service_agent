@@ -55,7 +55,7 @@ with an audit-log-doubling event store, and a minimal Next.js frontend. See
 | 4 · API + observability | done |
 | 5 · Frontend | done |
 | 6 · Evaluation + docs | done |
-| 7 · Deployment prep | not started |
+| 7 · Deployment prep | Dockerfile/compose confirmed correct; VPS/DNS blocked on infra access |
 
 ## Run it
 

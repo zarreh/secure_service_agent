@@ -183,8 +183,16 @@ side of this exact path is already covered by
 `mkdocs build --strict` passes. `make eval` is not wired into CI, matching
 A7's precedent — it needs a real key to score the routing layer.
 
-### Phase 7 — Deployment prep (deferred until DNS/VPS ready)
-- Caddy + Docker Compose on VPS; `secure-agent.zarreh.ai`.
+### Phase 7 — Deployment prep — blocked on DNS/VPS access
+- [x] Dockerfile/compose.yaml confirmed consistent with the sibling
+  pattern: `data/` is never `COPY`'d into the image, only mounted as a
+  volume (`./data:/app/data`) — an operator runs `make data` on the host
+  before `make up`, same as every other app. No changes needed; this was
+  already correct from the Phase 0 scaffold.
+- [ ] Caddy + Docker Compose on the actual VPS; `secure-agent.zarreh.ai`
+  DNS. Needs real infrastructure access this build environment does not
+  have — `.github/workflows/cd.yml`'s `deploy-vps` job is still the
+  Phase 0 placeholder, same as every sibling app at this stage.
 
 ### Phase 8 — `pro` tier (separately time-boxed, after `base` ships)
 - Live attack console: injection, indirect injection via policy document,
