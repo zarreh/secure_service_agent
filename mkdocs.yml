@@ -68,5 +68,7 @@ nav:
           - Index: architecture/decisions/index.md
           - D-A4-1 Independent synthetic accounts: architecture/decisions/D-A4-1-independent-synthetic-accounts.md
           - D-A4-2 PBKDF2 PIN hashing: architecture/decisions/D-A4-2-pbkdf2-pin-hashing.md
+          - D-A4-3 Deterministic layer wins: architecture/decisions/D-A4-3-deterministic-layer-wins.md
+          - D-A4-4 Persistent lockout counter: architecture/decisions/D-A4-4-persistent-lockout-counter.md
   - Evidence:
       - Evaluation: evidence/evaluation.md

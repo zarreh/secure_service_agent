@@ -102,6 +102,16 @@ CREATE TABLE memory_events (
     resolution_type TEXT NOT NULL,
     response_summary TEXT NOT NULL
 );
+
+-- Identity-gate lockout state (docs/PLAN.md Phase 2). Starts empty; every
+-- account is unlocked with zero failed attempts until a real PIN check
+-- fails. Persists across app restarts (not reset by anything except a full
+-- `make data` rebuild), which is the point of a lockout counter.
+CREATE TABLE pin_lockouts (
+    account_id TEXT PRIMARY KEY REFERENCES accounts(account_id),
+    failed_attempts INTEGER NOT NULL DEFAULT 0,
+    locked INTEGER NOT NULL DEFAULT 0
+);
 """
 
 

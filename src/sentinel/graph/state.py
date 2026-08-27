@@ -16,9 +16,40 @@ from __future__ import annotations
 
 from typing import TypedDict
 
+from sentinel.schemas.guardrail import GuardrailVerdict
+from sentinel.schemas.identity import IdentityResult
+
 
 class SkeletonState(TypedDict):
     """Walking-skeleton state — replaced by `SentinelState` starting Phase 2."""
 
     question: str
     steps: list[str]
+
+
+class SentinelState(TypedDict, total=False):
+    """The real graph state (docs/PLAN.md), built incrementally: Phase 2 adds
+    the guardrail and identity fields below; Phase 3 adds the specialist
+    routing, draft and review fields.
+
+    `total=False` because the state accumulates — a field is present only
+    after the node that owns it has run. Each node reads a narrow projection
+    of this (§9.3): `guardrail` reads only `question`; `identity_gate` reads
+    only `account_id`/`pin`; `output_guardrail` reads only `draft` and
+    `account_id` — none of them see the whole blob.
+    """
+
+    # input guardrail
+    question: str
+    input_verdict: GuardrailVerdict
+
+    # identity gate
+    account_id: str
+    pin: str
+    identity: IdentityResult
+
+    # specialist draft (Phase 3)
+    draft: str
+
+    # output guardrail
+    output_verdict: GuardrailVerdict

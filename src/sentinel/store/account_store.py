@@ -1,8 +1,10 @@
-"""Read-only repository over `accounts.db` — accounts, plans, and prior
-support interactions (docs/PLAN.md Phase 1).
+"""Repository over `accounts.db` — accounts, plans, prior support
+interactions, and identity-gate lockout state (docs/PLAN.md Phase 1/2).
 
 `verify_pin` is the only place a submitted PIN is ever compared; it never
-returns the stored hash or salt to a caller, only a bool.
+returns the stored hash or salt to a caller, only a bool. Lockout state is
+the one thing this store writes — everything else is read-only, built once
+by `data/generate_accounts.py`.
 """
 
 from __future__ import annotations
@@ -95,3 +97,37 @@ class AccountStore:
     def account_ids(self) -> list[str]:
         rows = self._connection.execute("SELECT account_id FROM accounts").fetchall()
         return [row[0] for row in rows]
+
+    def is_locked(self, account_id: str) -> bool:
+        row = self._connection.execute(
+            "SELECT locked FROM pin_lockouts WHERE account_id = ?", (account_id,)
+        ).fetchone()
+        return bool(row[0]) if row else False
+
+    def failed_attempts(self, account_id: str) -> int:
+        row = self._connection.execute(
+            "SELECT failed_attempts FROM pin_lockouts WHERE account_id = ?", (account_id,)
+        ).fetchone()
+        return int(row[0]) if row else 0
+
+    def record_failed_pin_attempt(self, account_id: str, *, max_attempts: int) -> int:
+        """Increments the failed-attempt counter, locking the account once it
+        reaches `max_attempts`. Returns the new count."""
+        attempts = self.failed_attempts(account_id) + 1
+        locked = attempts >= max_attempts
+        self._connection.execute(
+            "INSERT INTO pin_lockouts (account_id, failed_attempts, locked) VALUES (?, ?, ?) "
+            "ON CONFLICT(account_id) DO UPDATE SET failed_attempts = ?, locked = ?",
+            (account_id, attempts, int(locked), attempts, int(locked)),
+        )
+        self._connection.commit()
+        return attempts
+
+    def reset_pin_attempts(self, account_id: str) -> None:
+        """Clears the lockout counter — called after a successful verification."""
+        self._connection.execute(
+            "INSERT INTO pin_lockouts (account_id, failed_attempts, locked) VALUES (?, 0, 0) "
+            "ON CONFLICT(account_id) DO UPDATE SET failed_attempts = 0, locked = 0",
+            (account_id,),
+        )
+        self._connection.commit()

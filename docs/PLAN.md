@@ -62,19 +62,22 @@ green.
 **Exit criteria:** `make data` regenerates deterministically; store schema
 tests pass (17/17 green, ruff/mypy/import-linter clean).
 
-### Phase 2 — Guardrail nodes
-- Input guardrail: regex/deny-list layer (deterministic, always on) + an LLM
-  injection/toxicity classifier as an LCEL runnable, combined so the
-  canonical eval set is deterministic-passable without depending on LLM
-  variance alone.
-- Identity gate: PIN verification against the account store, lockout counter
-  after repeated failures, unlocks account-scoped tools only on success.
-- Output guardrail: regex + LLM leak/PII classifier over the drafted
-  response before it reaches the customer.
+### Phase 2 — Guardrail nodes ✅
+- [x] Input guardrail: regex/deny-list layer (deterministic, always on) + an
+  LLM injection classifier as an LCEL runnable (`chains/injection_scan.py`),
+  combined via `combine_verdicts` (D-A4-3) so the canonical eval set is
+  deterministic-passable and a deterministic block never spends a model call.
+- [x] Identity gate: PIN verification against the account store
+  (`guardrails/identity_gate.py`), lockout counter persisted in
+  `pin_lockouts` (D-A4-4) after repeated failures.
+- [x] Output guardrail: regex (PIN disclosure + cross-account reference) +
+  LLM leak/PII classifier (`chains/leak_scan.py`) over the drafted response.
 
 **Exit criteria:** unit tests cover block / allow / lockout paths for each
-guardrail node in isolation (no LLM call required for the deterministic
-layer's tests).
+guardrail node in isolation (37/37 green; the short-circuit tests assert the
+LLM stub is never called once the deterministic layer blocks). Real
+specialist tool scoping — the *positive* enforcement of "only the verified
+account's data" — lands in Phase 3; Phase 2 covers the guardrail layer only.
 
 ### Phase 3 — Specialist agents
 - `context_loader`: per-customer redacted long-term memory.

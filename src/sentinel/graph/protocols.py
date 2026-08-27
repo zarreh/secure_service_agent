@@ -3,8 +3,20 @@
 Node factories accept these instead of concrete `Runnable[...]` types so a
 plain test double (with just a matching `.invoke()`) can stand in without
 subclassing LangChain's `Runnable` — real chains satisfy them structurally
-too. Empty until Phase 2 adds the injection/leak scanner and review-judge
-chains.
+too. This is what lets the guardrail nodes be tested with no LLM and no
+network (docs/PLAN.md Phase 2).
 """
 
 from __future__ import annotations
+
+from typing import Protocol
+
+from sentinel.schemas.guardrail import InjectionScanResult, LeakScanResult
+
+
+class InjectionScanChain(Protocol):
+    def invoke(self, input: dict[str, str]) -> InjectionScanResult: ...
+
+
+class LeakScanChain(Protocol):
+    def invoke(self, input: dict[str, object]) -> LeakScanResult: ...
