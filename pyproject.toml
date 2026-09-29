@@ -1,0 +1,133 @@
+[project]
+name = "secureagent"
+version = "0.1.0"
+description = "A4 — Secure Service Agent: a telecom support agent built on the assumption that the user is hostile"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "langgraph>=0.2",
+    "langchain-core>=0.3",
+    "langchain-openai>=0.2",
+    "sse-starlette>=2.1",
+    "structlog>=24.4",
+    "slowapi>=0.1.9",
+    "httpx>=0.27",
+    "zarreh-agentkit",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "import-linter>=2.1",
+    "detect-secrets>=1.5",
+    "pre-commit>=4.0",
+    "respx>=0.23",
+]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.27",
+    "mkdocs-glightbox>=0.4",
+    "matplotlib>=3.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/secureagent"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "TID"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+explicit_package_bases = true
+files = ["src", "data", "evals", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.importlinter]
+root_package = "secureagent"
+include_external_packages = true
+
+# docs/PLAN.md §9.3 rule 2: dependencies point one way.
+[[tool.importlinter.contracts]]
+name = "Layering: api -> graph -> guardrails -> tools -> retrieval -> store -> schemas"
+type = "layers"
+layers = [
+    "secureagent.api",
+    "secureagent.graph",
+    "secureagent.guardrails",
+    "secureagent.tools",
+    "secureagent.retrieval",
+    "secureagent.store",
+    "secureagent.schemas",
+]
+
+[[tool.importlinter.contracts]]
+name = "chains never import nodes"
+type = "forbidden"
+source_modules = ["secureagent.graph.chains"]
+forbidden_modules = ["secureagent.graph.nodes"]
+
+[[tool.importlinter.contracts]]
+name = "tools, guardrails and retrieval never import graph"
+type = "forbidden"
+source_modules = [
+    "secureagent.tools",
+    "secureagent.guardrails",
+    "secureagent.retrieval",
+]
+forbidden_modules = ["secureagent.graph"]
+
+# docs/PLAN.md §4.2 / D-A4-2: identity is established in the API layer and only a
+# frozen Principal travels. Nothing that a model's step can reach may import the
+# module that verifies credentials.
+[[tool.importlinter.contracts]]
+name = "The graph, tools and guardrails never import identity"
+type = "forbidden"
+source_modules = [
+    "secureagent.graph",
+    "secureagent.tools",
+    "secureagent.guardrails",
+    "secureagent.retrieval",
+]
+forbidden_modules = ["secureagent.identity"]
+
+[[tool.importlinter.contracts]]
+name = "identity depends only on store and schemas"
+type = "forbidden"
+source_modules = ["secureagent.identity"]
+forbidden_modules = [
+    "secureagent.api",
+    "secureagent.graph",
+    "secureagent.tools",
+    "secureagent.guardrails",
+]
+
+[[tool.importlinter.contracts]]
+name = "no DSPy or DeepEval outside evals/optimize"
+type = "forbidden"
+source_modules = ["secureagent"]
+forbidden_modules = ["dspy", "deepeval"]
+
+[tool.uv.sources]
+zarreh-agentkit = { git = "https://github.com/zarreh/zarreh_agentkit.git", tag = "v0.2.0" }
