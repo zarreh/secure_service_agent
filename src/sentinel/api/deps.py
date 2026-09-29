@@ -16,8 +16,10 @@ from sentinel.graph.builder import (
     build_sentinel_graph,
     build_skeleton_graph,
 )
+from sentinel.identity import IdentityGate, Lockout, LockoutPolicy
 from sentinel.settings import Settings, get_settings
 from sentinel.store.account_store import AccountStore
+from sentinel.store.lockout_store import LockoutStore
 from sentinel.store.run_store import RunStore
 
 
@@ -35,6 +37,17 @@ def get_compiled_graph() -> SkeletonGraph:
 def get_account_store() -> AccountStore:
     """One read-write account-store connection, shared across requests."""
     return AccountStore(Path(get_settings().accounts_db_path))
+
+
+@lru_cache
+def get_identity_gate() -> IdentityGate:
+    """The only credential checker; the graph is never handed it (D-A4-9)."""
+    settings = get_settings()
+    lockout = Lockout(
+        LockoutStore(Path(settings.identity_db_path)),
+        LockoutPolicy(free_attempts=settings.pin_max_attempts),
+    )
+    return IdentityGate(get_account_store(), lockout, settings.identity_pepper)
 
 
 @lru_cache

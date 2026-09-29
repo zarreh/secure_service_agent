@@ -37,7 +37,7 @@ export function GuardrailStrip({ events }: { events: TraceEvent[] }) {
           ok={identity.verified}
           text={
             identity.locked
-              ? "Identity gate: account locked after too many failed PIN attempts."
+              ? `Identity gate: too many failed PIN attempts — try again in ${Math.ceil(identity.retry_after_seconds)}s.`
               : identity.verified
                 ? "Identity gate: PIN verified."
                 : `Identity gate: PIN not verified (${identity.attempts_remaining} attempt(s) remaining).`

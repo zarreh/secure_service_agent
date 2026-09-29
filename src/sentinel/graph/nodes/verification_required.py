@@ -14,8 +14,9 @@ def verification_required(state: SentinelState) -> dict[str, str]:
     identity = state["identity"]
     if identity.locked:
         return {
-            "response": "This account is locked after too many incorrect PIN "
-            "attempts. Please contact support through another verified channel."
+            "response": "There have been too many incorrect PIN attempts, so sign-in is "
+            "paused for a while. Please try again later, or contact support through "
+            "another verified channel."
         }
     return {
         "response": "I can't share account-specific details until you verify with your account PIN."

@@ -130,7 +130,7 @@ def build_sentinel_graph(
     # limitation, not a real type error; each node is unit-tested directly
     # in tests/graph/ (same precedent as A3's builder.py).
     guardrail_node = build_guardrail_node(injection_chain)
-    identity_gate_node = build_identity_gate_node(store, settings)
+    identity_gate_node = build_identity_gate_node()
     context_loader_node = build_context_loader_node(store)
     supervisor_node = build_supervisor_node(route_chain)
     network_agent_node = build_network_agent_node(network_chain)

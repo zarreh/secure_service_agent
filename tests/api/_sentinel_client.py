@@ -21,8 +21,11 @@ from sentinel.api import deps
 from sentinel.api.main import app
 from sentinel.graph.builder import SentinelGraph, build_sentinel_graph
 from sentinel.graph.protocols import SpecialistChain, SupervisorReviewChain
+from sentinel.identity import IdentityGate, Lockout, LockoutPolicy
 from sentinel.settings import Settings
 from sentinel.store.account_store import AccountStore
+from sentinel.store.lockout_store import LockoutStore
+from sentinel.store.pin_hash import FIXTURE_PEPPER
 from sentinel.store.run_store import RunStore
 from tests.fixtures.stub_chains import (
     AlwaysPassingReviewChain,
@@ -40,6 +43,7 @@ class SentinelTestContext:
     run_store: RunStore
     account_store: AccountStore
     graph: SentinelGraph
+    gate: IdentityGate
     settings: Settings
     account_id: str
     pin: str
@@ -78,8 +82,14 @@ def build_sentinel_test_context(
         review_chain=review_chain or AlwaysPassingReviewChain(),
     )
     run_store = RunStore(run_db)
+    gate = IdentityGate(
+        account_store,
+        Lockout(LockoutStore(tmp_path / "identity.db"), LockoutPolicy(free_attempts=3)),
+        FIXTURE_PEPPER,
+    )
 
     app.dependency_overrides[deps.get_sentinel_graph] = lambda: graph
+    app.dependency_overrides[deps.get_identity_gate] = lambda: gate
     app.dependency_overrides[deps.get_run_store] = lambda: run_store
     app.dependency_overrides[deps.settings_dependency] = lambda: settings
 
@@ -88,6 +98,7 @@ def build_sentinel_test_context(
         run_store=run_store,
         account_store=account_store,
         graph=graph,
+        gate=gate,
         settings=settings,
         account_id=account_id,
         pin=pin,

@@ -16,6 +16,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from sentinel.api.deps import (
     get_compiled_graph,
+    get_identity_gate,
     get_run_store,
     get_sentinel_graph,
     settings_dependency,
@@ -31,6 +32,7 @@ from sentinel.api.schemas import (
 from sentinel.api.streaming import stream_graph_events, stream_run_events
 from sentinel.graph.builder import SentinelGraph, SkeletonGraph
 from sentinel.graph.state import SkeletonState
+from sentinel.identity import IdentityGate
 from sentinel.schemas.chat import ChatRequest
 from sentinel.settings import Settings
 from sentinel.store.run_store import RunStore
@@ -56,18 +58,28 @@ async def create_chat(
     body: CreateChatRequest,
     background_tasks: BackgroundTasks,
     graph: Annotated[SentinelGraph, Depends(get_sentinel_graph)],
+    gate: Annotated[IdentityGate, Depends(get_identity_gate)],
     run_store: Annotated[RunStore, Depends(get_run_store)],
     settings: Annotated[Settings, Depends(settings_dependency)],
 ) -> CreateChatResponse:
     """Deliberately does not pre-check whether `account_id` exists: a 404
     here vs. a 202 for a real account would be exactly the enumeration
-    oracle D-A4-2 closes at the store layer. An unknown account reaches
-    `identity_gate` like any other and comes back `unverified`, same as a
-    real account with a wrong PIN."""
+    oracle D-A4-2 closes at the store layer. An unknown account is verified
+    and throttled exactly like a real one with a wrong PIN."""
     run_id = uuid.uuid4().hex
     run_store.create_run(run_id, body.question, body.account_id)
+    client = request.client.host if request.client else "unknown"
     background_tasks.add_task(
-        execute_chat, run_id, body.question, body.account_id, body.pin, graph, run_store, settings
+        execute_chat,
+        run_id,
+        body.question,
+        body.account_id,
+        body.pin,
+        client,
+        graph,
+        gate,
+        run_store,
+        settings,
     )
     return CreateChatResponse(id=run_id, status="running")
 

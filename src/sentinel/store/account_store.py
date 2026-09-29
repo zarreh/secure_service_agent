@@ -1,10 +1,9 @@
-"""Repository over `accounts.db` — accounts, plans, prior support
-interactions, and identity-gate lockout state (docs/PLAN.md Phase 1/2).
+"""Read-only repository over `accounts.db` — accounts, plans and prior support
+interactions (docs/PLAN.md Phase 1).
 
-`verify_pin` is the only place a submitted PIN is ever compared; it never
-returns the stored hash or salt to a caller, only a bool. Lockout state is
-the one thing this store writes — everything else is read-only, built once
-by `data/generate_accounts.py`.
+Credential checking and lockout state live in `sentinel.identity`, not here: this
+store is reachable from the graph, and the graph must never be able to verify a
+PIN or touch lockout state (D-A4-10).
 """
 
 from __future__ import annotations
@@ -14,7 +13,6 @@ from datetime import date, datetime
 from pathlib import Path
 
 from sentinel.store.models import Account, MemoryEvent, Plan
-from sentinel.store.pin_hash import verify_pin
 
 
 class AccountStore:
@@ -43,16 +41,6 @@ class AccountStore:
             autopay_enabled=bool(row[5]),
             date_joined=date.fromisoformat(row[6]),
         )
-
-    def verify_pin(self, account_id: str, pin: str) -> bool:
-        """Verifies a submitted PIN against the stored hash. Returns False for
-        an unknown account rather than raising, so a caller cannot distinguish
-        "wrong PIN" from "no such account" — that distinction is exactly what
-        an attacker enumerating account ids would want."""
-        account = self.get_account(account_id)
-        if account is None:
-            return False
-        return verify_pin(pin, account.pin_hash, account.pin_salt)
 
     def get_plan(self, account_id: str) -> Plan | None:
         row = self._connection.execute(
@@ -97,37 +85,3 @@ class AccountStore:
     def account_ids(self) -> list[str]:
         rows = self._connection.execute("SELECT account_id FROM accounts").fetchall()
         return [row[0] for row in rows]
-
-    def is_locked(self, account_id: str) -> bool:
-        row = self._connection.execute(
-            "SELECT locked FROM pin_lockouts WHERE account_id = ?", (account_id,)
-        ).fetchone()
-        return bool(row[0]) if row else False
-
-    def failed_attempts(self, account_id: str) -> int:
-        row = self._connection.execute(
-            "SELECT failed_attempts FROM pin_lockouts WHERE account_id = ?", (account_id,)
-        ).fetchone()
-        return int(row[0]) if row else 0
-
-    def record_failed_pin_attempt(self, account_id: str, *, max_attempts: int) -> int:
-        """Increments the failed-attempt counter, locking the account once it
-        reaches `max_attempts`. Returns the new count."""
-        attempts = self.failed_attempts(account_id) + 1
-        locked = attempts >= max_attempts
-        self._connection.execute(
-            "INSERT INTO pin_lockouts (account_id, failed_attempts, locked) VALUES (?, ?, ?) "
-            "ON CONFLICT(account_id) DO UPDATE SET failed_attempts = ?, locked = ?",
-            (account_id, attempts, int(locked), attempts, int(locked)),
-        )
-        self._connection.commit()
-        return attempts
-
-    def reset_pin_attempts(self, account_id: str) -> None:
-        """Clears the lockout counter — called after a successful verification."""
-        self._connection.execute(
-            "INSERT INTO pin_lockouts (account_id, failed_attempts, locked) VALUES (?, 0, 0) "
-            "ON CONFLICT(account_id) DO UPDATE SET failed_attempts = 0, locked = 0",
-            (account_id,),
-        )
-        self._connection.commit()

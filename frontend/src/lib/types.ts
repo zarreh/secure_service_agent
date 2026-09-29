@@ -20,6 +20,7 @@ export type IdentityResult = {
   verified: boolean;
   locked: boolean;
   attempts_remaining: number;
+  retry_after_seconds: number;
 };
 
 export type CreateChatResponse = {

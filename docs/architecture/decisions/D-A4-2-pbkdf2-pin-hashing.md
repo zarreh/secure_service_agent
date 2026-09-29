@@ -1,6 +1,10 @@
 # D-A4-2 — PBKDF2-HMAC-SHA256 for PIN storage, never plaintext
 
-**Status:** Accepted, implemented (`sentinel/store/pin_hash.py`, Phase 1).
+**Status:** Accepted, implemented (`sentinel/store/pin_hash.py`, Phase 1). Amended by
+[D-A4-9](D-A4-9-pin-never-enters-the-graph.md) and
+[D-A4-10](D-A4-10-durable-backoff-lockout.md): a pepper was added, and the statement
+below that the PIN is not held in graph state was **false** — it was, and reached
+tracers. It no longer is.
 
 ## Context
 

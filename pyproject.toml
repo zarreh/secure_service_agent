@@ -98,5 +98,22 @@ type = "forbidden"
 source_modules = ["sentinel.tools"]
 forbidden_modules = ["sentinel.graph"]
 
+[[tool.importlinter.contracts]]
+name = "The graph, tools and guardrails never import identity"
+type = "forbidden"
+source_modules = ["sentinel.graph", "sentinel.tools", "sentinel.guardrails"]
+forbidden_modules = ["sentinel.identity"]
+
+[[tool.importlinter.contracts]]
+name = "identity depends only on store and schemas"
+type = "forbidden"
+source_modules = ["sentinel.identity"]
+forbidden_modules = [
+    "sentinel.api",
+    "sentinel.graph",
+    "sentinel.tools",
+    "sentinel.guardrails",
+]
+
 [tool.uv.sources]
 zarreh-agentkit = { git = "https://github.com/zarreh/zarreh_agentkit.git", tag = "v0.2.0" }

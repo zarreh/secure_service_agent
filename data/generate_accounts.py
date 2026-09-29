@@ -20,7 +20,7 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-from sentinel.store.pin_hash import hash_pin
+from sentinel.store.pin_hash import FIXTURE_PEPPER, hash_pin
 
 OUTPUT = Path("data/accounts.db")
 
@@ -102,16 +102,6 @@ CREATE TABLE memory_events (
     resolution_type TEXT NOT NULL,
     response_summary TEXT NOT NULL
 );
-
--- Identity-gate lockout state (docs/PLAN.md Phase 2). Starts empty; every
--- account is unlocked with zero failed attempts until a real PIN check
--- fails. Persists across app restarts (not reset by anything except a full
--- `make data` rebuild), which is the point of a lockout counter.
-CREATE TABLE pin_lockouts (
-    account_id TEXT PRIMARY KEY REFERENCES accounts(account_id),
-    failed_attempts INTEGER NOT NULL DEFAULT 0,
-    locked INTEGER NOT NULL DEFAULT 0
-);
 """
 
 
@@ -133,7 +123,7 @@ def generate_accounts_db(connection: sqlite3.Connection, *, seed: int = _SEED) -
         name = rng.choice(_FIRST_NAMES)
         pin = f"{rng.randint(0, 9999):04d}"
         pins[account_id] = pin
-        pin_hash, pin_salt = hash_pin(pin)
+        pin_hash, pin_salt = hash_pin(pin, pepper=FIXTURE_PEPPER)
         status = "active" if rng.random() > 0.1 else "suspended"
         autopay = rng.random() > 0.4
         joined = _random_date(rng, date(2017, 1, 1), date(2025, 1, 1))

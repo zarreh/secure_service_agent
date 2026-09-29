@@ -11,6 +11,7 @@ outputs, so persisting every event persists every guardrail decision.
 
 from __future__ import annotations
 
+import asyncio
 import json
 
 import structlog
@@ -21,6 +22,7 @@ from zarreh_agentkit.observability import build_tracing_callbacks
 from sentinel.graph.builder import SentinelGraph
 from sentinel.graph.cost_tracking import CostTrackingHandler
 from sentinel.graph.state import SentinelState
+from sentinel.identity import IdentityGate
 from sentinel.observability import get_logger
 from sentinel.settings import Settings
 from sentinel.store.run_store import RunStore
@@ -63,14 +65,15 @@ async def execute_chat(
     question: str,
     account_id: str,
     pin: str,
+    client: str,
     graph: SentinelGraph,
+    gate: IdentityGate,
     run_store: RunStore,
     settings: Settings,
 ) -> None:
-    """`pin` is used only to build the initial state passed to `graph.ainvoke`
-    equivalent below — it is never written to `run_store` and no node output
-    ever includes it (D-A4-2), so nothing here needs to scrub it after the
-    fact."""
+    """`pin` is checked once by `gate` and then dropped: only the resulting
+    `IdentityResult` enters graph state, so no node, checkpoint, trace or
+    audit-log payload can contain it (D-A4-9)."""
     structlog.contextvars.bind_contextvars(correlation_id=run_id)
     try:
         cost_handler = CostTrackingHandler()
@@ -78,10 +81,11 @@ async def execute_chat(
             cost_handler,
             *build_tracing_callbacks(settings.langsmith_api_key, settings.langsmith_project),
         ]
+        identity = await asyncio.to_thread(gate.verify, account_id, pin, client=client)
         initial: SentinelState = {
             "question": question,
             "account_id": account_id,
-            "pin": pin,
+            "identity": identity,
         }
         final_state: dict[str, object] = {}
         sequence = 0

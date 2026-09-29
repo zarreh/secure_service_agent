@@ -55,8 +55,9 @@ green.
   account/plan/memory population rather than parsing the course CSVs
   (D-A4-1); output `data/accounts.db` is gitignored, rebuilt by `make data`.
 - [x] PINs stored as PBKDF2-HMAC-SHA256 hash + salt, never plaintext
-  (D-A4-2); `AccountStore.verify_pin` never returns the stored hash/salt and
-  does not distinguish "wrong PIN" from "unknown account."
+  (D-A4-2, pepper added by D-A4-10); credential checking lives in
+  `sentinel.identity`, not the store, and does not distinguish "wrong PIN" from
+  "unknown account."
 - [x] `sentinel/store/`: `AccountStore`, `policy_kb` loader, Pydantic models.
 
 **Exit criteria:** `make data` regenerates deterministically; store schema
@@ -67,9 +68,9 @@ tests pass (17/17 green, ruff/mypy/import-linter clean).
   LLM injection classifier as an LCEL runnable (`chains/injection_scan.py`),
   combined via `combine_verdicts` (D-A4-3) so the canonical eval set is
   deterministic-passable and a deterministic block never spends a model call.
-- [x] Identity gate: PIN verification against the account store
-  (`guardrails/identity_gate.py`), lockout counter persisted in
-  `pin_lockouts` (D-A4-4) after repeated failures.
+- [x] Identity gate: PIN verification in the API layer before the graph starts
+  (`identity/gate.py`, D-A4-9), durable exponential-backoff lockout keyed on account
+  and client (D-A4-10, superseding the permanent lock of D-A4-4).
 - [x] Output guardrail: regex (PIN disclosure + cross-account reference) +
   LLM leak/PII classifier (`chains/leak_scan.py`) over the drafted response.
 

@@ -39,7 +39,7 @@ class SentinelState(TypedDict, total=False):
     `total=False` because the state accumulates — a field is present only
     after the node that owns it has run. Each node reads a narrow projection
     of this (§9.3): `guardrail` reads only `question`; `identity_gate` reads
-    only `account_id`/`pin`; `output_guardrail` reads only `draft` and
+    only `identity`; `output_guardrail` reads only `draft` and
     `account_id` — none of them see the whole blob.
     """
 
@@ -47,9 +47,8 @@ class SentinelState(TypedDict, total=False):
     question: str
     input_verdict: GuardrailVerdict
 
-    # identity gate
+    # identity gate — decided before the graph starts (D-A4-9); the PIN is never in state
     account_id: str
-    pin: str
     identity: IdentityResult
 
     # context loader (Phase 3)

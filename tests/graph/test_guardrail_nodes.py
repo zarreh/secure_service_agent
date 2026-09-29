@@ -1,10 +1,11 @@
+import pytest
+
 from sentinel.graph.nodes.guardrail import build_guardrail_node
 from sentinel.graph.nodes.identity_gate import build_identity_gate_node
 from sentinel.graph.nodes.output_guardrail import build_output_guardrail_node
 from sentinel.graph.state import SentinelState
 from sentinel.schemas.guardrail import InjectionScanResult, LeakScanResult
-from sentinel.settings import Settings
-from sentinel.store.account_store import AccountStore
+from sentinel.schemas.identity import IdentityResult
 
 
 class _StubInjectionChain:
@@ -64,16 +65,18 @@ def test_guardrail_node_blocks_when_only_the_llm_layer_flags_it() -> None:
     assert result["input_verdict"].layer == "llm"
 
 
-def test_identity_gate_node_verifies_a_correct_pin(
-    account_store: AccountStore, known_pins: dict[str, str]
-) -> None:
-    account_id, real_pin = next(iter(known_pins.items()))
-    node = build_identity_gate_node(account_store, Settings(pin_max_attempts=3))
-    state: SentinelState = {"account_id": account_id, "pin": real_pin}
+def test_identity_gate_node_admits_the_decision_made_before_the_graph() -> None:
+    decided = IdentityResult(verified=True, locked=False, attempts_remaining=3)
+    node = build_identity_gate_node()
 
-    result = node(state)
+    assert node({"identity": decided})["identity"] == decided
 
-    assert result["identity"].verified is True
+
+def test_identity_gate_node_fails_closed_without_an_identity() -> None:
+    node = build_identity_gate_node()
+
+    with pytest.raises(KeyError):
+        node({"account_id": "ACCT_2000"})
 
 
 def test_output_guardrail_node_short_circuits_on_deterministic_block() -> None:

@@ -7,8 +7,9 @@
 It would be easy to make `POST /chat` friendlier by checking
 `account_store.get_account(body.account_id)` up front and returning 404 for
 an unknown id before even starting a run. D-A4-2 already closed this exact
-side channel one layer down — `AccountStore.verify_pin` and
-`check_identity` both return `False`/`unverified` for an unknown account
+side channel one layer down — the account store and the identity check
+both returned `False`/`unverified` for an unknown account (now
+`sentinel.identity`, D-A4-10, which also makes the *response sequence* identical)
 without ever revealing that the difference was "no such account" rather
 than "wrong PIN."
 

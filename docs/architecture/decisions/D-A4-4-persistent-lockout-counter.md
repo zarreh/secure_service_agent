@@ -1,6 +1,8 @@
 # D-A4-4 — The PIN lockout counter lives in the account store, not in graph state
 
-**Status:** Accepted, implemented (`pin_lockouts` table, `AccountStore`, Phase 2).
+**Status:** Superseded by [D-A4-10](D-A4-10-durable-backoff-lockout.md). The permanent,
+account-only lock described below let anyone lock a customer out for good and had no
+client throttle.
 
 ## Context
 

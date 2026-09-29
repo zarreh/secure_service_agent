@@ -7,3 +7,6 @@
 - [D-A4-5 Specialists never let the model choose an account identifier](D-A4-5-no-llm-chosen-tool-arguments.md)
 - [D-A4-6 `POST /chat` never pre-validates `account_id`](D-A4-6-no-enumeration-via-http-status.md)
 - [D-A4-7 The audit log is the persisted node-event stream, not a separate table](D-A4-7-audit-log-is-the-event-store.md)
+- [D-A4-8 The input screen is a measured first pass, not the defence](D-A4-8-measured-input-screen.md)
+- [D-A4-9 The PIN never enters the graph](D-A4-9-pin-never-enters-the-graph.md)
+- [D-A4-10 Durable exponential-backoff lockout, keyed on account and client, with a pepper](D-A4-10-durable-backoff-lockout.md)
