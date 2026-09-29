@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import SettingsConfigDict
 from zarreh_agentkit.settings import AgentSettings
 
@@ -23,7 +23,7 @@ class Settings(AgentSettings):
     pin_max_attempts: int = 3
     identity_db_path: str = "data/identity.db"
     # Held outside the database so a stolen accounts.db cannot be brute-forced offline.
-    identity_pepper: str = FIXTURE_PEPPER
+    identity_pepper: str = Field(default=FIXTURE_PEPPER, min_length=1)
 
     max_request_body_bytes: int = 8_192
 

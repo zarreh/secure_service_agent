@@ -84,6 +84,12 @@ make eval                 # guardrail attack scenarios (no API key needed)
 make frontend-dev         # http://localhost:3000 — use a demo account/PIN from `make data`'s output
 ```
 
+Outside development the app refuses to start unless `SENTINEL_IDENTITY_PEPPER` is set to a
+private value (`python -c "import secrets; print(secrets.token_urlsafe(32))"`) and
+`SENTINEL_ENVIRONMENT` names the environment. The pepper is held outside the database so a
+stolen `accounts.db` cannot be brute-forced; changing it invalidates every stored PIN hash,
+so rebuild with `make data`.
+
 ## Layout
 
 See `docs/PLAN.md` §"Repo scaffold" for the full nested `graph/` convention
