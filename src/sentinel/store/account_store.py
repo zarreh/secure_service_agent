@@ -85,3 +85,14 @@ class AccountStore:
     def account_ids(self) -> list[str]:
         rows = self._connection.execute("SELECT account_id FROM accounts").fetchall()
         return [row[0] for row in rows]
+
+    def other_customer_names(self, account_id: str) -> list[str]:
+        """Names of every other customer, for the output check. A name the caller
+        shares with another customer is left out, or greeting them by name would be
+        blocked."""
+        rows = self._connection.execute(
+            "SELECT DISTINCT customer_name FROM accounts WHERE account_id != ?", (account_id,)
+        ).fetchall()
+        own = self.get_account(account_id)
+        own_name = own.customer_name.casefold() if own else None
+        return sorted(row[0] for row in rows if row[0].casefold() != own_name)

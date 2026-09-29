@@ -76,5 +76,6 @@ nav:
           - D-A4-8 Measured input screen: architecture/decisions/D-A4-8-measured-input-screen.md
           - D-A4-9 PIN never enters the graph: architecture/decisions/D-A4-9-pin-never-enters-the-graph.md
           - D-A4-10 Durable backoff lockout: architecture/decisions/D-A4-10-durable-backoff-lockout.md
+          - D-A4-11 Output check vs stored values: architecture/decisions/D-A4-11-output-check-against-stored-values.md
   - Evidence:
       - Evaluation: evidence/evaluation.md

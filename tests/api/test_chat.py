@@ -93,3 +93,40 @@ def test_wrong_pin_completes_with_a_verification_required_response(tmp_path: Pat
     record = ctx.client.get(f"/chat/{run_id}").json()
     assert record["status"] == "completed"
     assert "verify" in record["response"].lower()
+
+
+def test_a_blocked_leak_is_not_quoted_anywhere_the_client_can_read(tmp_path: Path) -> None:
+    """A guardrail verdict is streamed to the client, so its reason must not repeat
+    the very value it blocked (another customer's id or name)."""
+    from sentinel.schemas.specialist import SpecialistResponse
+
+    class _LeakyChain:
+        def __init__(self, text: str) -> None:
+            self._text = text
+
+        def invoke(self, input: dict[str, object]) -> SpecialistResponse:
+            return SpecialistResponse(draft=self._text, citations=[])
+
+    (tmp_path / "probe").mkdir()
+    probe = build_sentinel_test_context(tmp_path / "probe")
+    other_id = next(i for i in probe.account_store.account_ids() if i != probe.account_id)
+    other = probe.account_store.get_account(other_id)
+    assert other is not None
+
+    for index, leak in enumerate(
+        (f"This matches {other_id}.", f"{other.customer_name} has the same plan.")
+    ):
+        workdir = tmp_path / f"leak{index}"
+        workdir.mkdir()
+        ctx = build_sentinel_test_context(workdir, specialist_chain=_LeakyChain(leak))
+        run_id = ctx.client.post(
+            "/chat",
+            json={"question": "Compare my plan", "account_id": ctx.account_id, "pin": ctx.pin},
+        ).json()["id"]
+
+        everything = (
+            ctx.client.get(f"/chat/{run_id}/events").text + ctx.client.get(f"/chat/{run_id}").text
+        )
+        assert '"blocked": true' in everything or "blocked=True" in everything
+        assert other_id not in everything
+        assert other.customer_name not in everything

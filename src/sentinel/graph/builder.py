@@ -138,7 +138,7 @@ def build_sentinel_graph(
     account_agent_node = build_account_agent_node(store, account_chain)
     escalation_agent_node = build_escalation_agent_node(escalation_chain)
     supervisor_review_node = build_supervisor_review_node(review_chain)
-    output_guardrail_node = build_output_guardrail_node(leak_chain)
+    output_guardrail_node = build_output_guardrail_node(leak_chain, store)
 
     workflow = StateGraph(SentinelState)
     workflow.add_node("guardrail", guardrail_node)  # type: ignore[arg-type]

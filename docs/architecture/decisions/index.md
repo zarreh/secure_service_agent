@@ -10,3 +10,4 @@
 - [D-A4-8 The input screen is a measured first pass, not the defence](D-A4-8-measured-input-screen.md)
 - [D-A4-9 The PIN never enters the graph](D-A4-9-pin-never-enters-the-graph.md)
 - [D-A4-10 Durable exponential-backoff lockout, keyed on account and client, with a pepper](D-A4-10-durable-backoff-lockout.md)
+- [D-A4-11 The output check compares against stored values, and nothing blocked is echoed](D-A4-11-output-check-against-stored-values.md)

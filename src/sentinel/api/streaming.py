@@ -10,6 +10,7 @@ import asyncio
 import json
 from collections.abc import AsyncIterator
 
+from sentinel.api.client_view import project_for_client
 from sentinel.graph.builder import SkeletonGraph
 from sentinel.graph.state import SkeletonState
 from sentinel.store.run_store import RunStore
@@ -39,7 +40,8 @@ async def stream_run_events(run_store: RunStore, run_id: str) -> AsyncIterator[s
     while True:
         events = run_store.get_events(run_id, after_sequence=last_sequence)
         for event in events:
-            yield json.dumps({"node": event.node, "output": json.loads(event.payload_json)})
+            output = project_for_client(json.loads(event.payload_json))
+            yield json.dumps({"node": event.node, "output": output})
             last_sequence = event.sequence
 
         run = run_store.get_run(run_id)
