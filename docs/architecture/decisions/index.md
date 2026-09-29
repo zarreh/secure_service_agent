@@ -11,3 +11,4 @@
 - [D-A4-9 The PIN never enters the graph](D-A4-9-pin-never-enters-the-graph.md)
 - [D-A4-10 Durable exponential-backoff lockout, keyed on account and client, with a pepper](D-A4-10-durable-backoff-lockout.md)
 - [D-A4-11 The output check compares against stored values, and nothing blocked is echoed](D-A4-11-output-check-against-stored-values.md)
+- [D-A4-12 Containment is measured with a compromised model and per-control ablation](D-A4-12-containment-under-a-compromised-model.md)

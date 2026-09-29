@@ -20,6 +20,8 @@ check: lint typecheck imports test
 
 eval:
 	uv run python -m evals.run
+	uv run python -m evals.screen_report
+	uv run python -m evals.containment > /dev/null && echo "containment: baseline holds, every ablation breaches what it is documented to"
 
 up:
 	docker compose up --build

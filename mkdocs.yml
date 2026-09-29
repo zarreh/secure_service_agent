@@ -77,5 +77,7 @@ nav:
           - D-A4-9 PIN never enters the graph: architecture/decisions/D-A4-9-pin-never-enters-the-graph.md
           - D-A4-10 Durable backoff lockout: architecture/decisions/D-A4-10-durable-backoff-lockout.md
           - D-A4-11 Output check vs stored values: architecture/decisions/D-A4-11-output-check-against-stored-values.md
+          - D-A4-12 Containment under a compromised model: architecture/decisions/D-A4-12-containment-under-a-compromised-model.md
   - Evidence:
       - Evaluation: evidence/evaluation.md
+      - Containment under a compromised model: evidence/containment.md

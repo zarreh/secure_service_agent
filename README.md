@@ -57,6 +57,21 @@ with an audit-log-doubling event store, and a minimal Next.js frontend. See
 | 6 · Evaluation + docs | done |
 | 7 · Deployment prep | Dockerfile/compose confirmed correct; VPS/DNS blocked on infra access |
 
+## Security posture
+
+The claim is not that the guardrails detect every attack. It is that **with every model
+in the graph compromised, the customer's data still does not leave**, and that each
+deterministic control is load-bearing for exactly what it is documented to contain.
+
+- [Containment under a compromised model](docs/evidence/containment.md): 15 scenarios,
+  then each control switched off in turn. `make eval` reproduces it.
+- Input screen: 0/122 benign messages blocked; held-out set 104/112 blocked (95% Wilson
+  86.5–96.3%). The misses are documented, not tuned away (D-A4-8).
+- The PIN is verified before the graph starts and never enters graph state, so it cannot
+  reach a trace (D-A4-9); lockout is durable exponential backoff (D-A4-10).
+- What is **not** measured: any live-model behaviour. The LLM classifiers and routing need
+  a configured model and are not populated.
+
 ## Run it
 
 ```bash

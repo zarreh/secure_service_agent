@@ -224,5 +224,27 @@ the portfolio plan names explicitly after A2's L-cost build.
 - DNS/VPS setup for `secure-agent.zarreh.ai`: same Caddy pattern as the
   other deployed apps.
 - Whether `identity_gate` lockout state should be per-session or persisted
-  across sessions for the same account — leaning persisted, to be decided
-  in Phase 2's ADR.
+  across sessions for the same account — **resolved**: persisted, with exponential
+  backoff keyed on account and client (D-A4-10).
+
+## Consolidation (2026-09)
+
+A second, independent implementation of this app (package `secureagent`, a
+tool-calling design with a scoped executor and Qdrant retrieval) had been built on
+another device. Rather than keep two, this repository is the base, and the parts of
+the other that were measurably stronger were ported into it; the rest was left out on
+purpose. The other implementation is preserved unchanged on the
+`secureagent-containment` branch.
+
+| Ported | Why | ADR |
+|---|---|---|
+| Normaliser + three-verdict input screen, with corpora | The five-regex scanner blocked 0/35 obfuscated and 5/112 held-out attacks and wrongly blocked 5/122 benign messages | D-A4-8 |
+| Identity gate moved out of the graph; durable backoff lockout; pepper | The PIN was in graph state and reached tracers in plaintext; permanent lock was a denial of service; unknown accounts were distinguishable | D-A4-9, D-A4-10 |
+| Output check against stored values; block reasons never echo the value; client-view allow-list | Names were unchecked, obfuscated ids and PINs passed, and a blocked draft was readable in the event stream | D-A4-11 |
+| Assume-breach containment suite with per-control ablation | Detection rates do not answer whether data stays put when a model is compromised | D-A4-12 |
+
+Not ported: the tool registry and scoped executor (this design gives specialists no
+tools and never lets a model choose an identifier, D-A4-5, which is stronger against
+argument injection), and Qdrant retrieval (a structured clause lookup over a small,
+versioned rulebook needs no vector store). The poisoned-policy fixture is a candidate
+for the context loader and is not yet ported.
