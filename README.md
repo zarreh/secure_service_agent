@@ -38,7 +38,7 @@ the API. No security control is built yet.
 | Phase | State |
 |---|---|
 | 0 · Template transplant | built |
-| 1 · Data foundation | not started |
+| 1 · Data foundation | built |
 | 2 · Identity and scoped tools | not started |
 | 3 · Input envelope | not started |
 | 4 · Graph core | not started |
