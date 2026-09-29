@@ -39,7 +39,7 @@ the API. No security control is built yet.
 |---|---|
 | 0 · Template transplant | built |
 | 1 · Data foundation | built |
-| 2 · Identity and scoped tools | not started |
+| 2 · Identity and scoped tools | built |
 | 3 · Input envelope | not started |
 | 4 · Graph core | not started |
 | 5 · Review and output envelope | not started |

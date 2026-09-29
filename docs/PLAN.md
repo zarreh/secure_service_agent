@@ -363,3 +363,17 @@ Real customer or carrier data · real payment or SIM operations · a real SMS/vo
 | The plan said ~14 policy documents and ~120 benign messages; the real counts are 15 (14 + the poisoned one) and 122, and tests assert the exact figures | Correction |
 
 `make check` green (ruff, mypy --strict, 6 import-linter contracts, 49 tests).
+
+**2026-09-29 — Phase 2 built.** `Principal`, the identity gate with persisted lockout, the tool registry and the scoped executor; eight tools, none of which performs a sensitive action.
+
+| Change | Origin |
+|---|---|
+| **The model-facing tool schemas contain no identity argument at all**, so there is nothing for a hostile model to choose. This is stronger than A3's overwrite of a supplied `patient_id`: the principal is *injected* by the executor. A supplied identity-like argument (any spelling: `account_id`, `accountId`, `phone`, `msisdn`...) is still discarded and recorded with what was requested; an unexpected key carrying a customer (`target=ACCT_1001`) is recorded too, so an attempt never vanishes into validation. A structural test fails if any future tool grows an identity field | Design improvement over A3 |
+| **Scope is a pure function of the principal.** An unverified caller's scope holds no account tool, and the model is only *shown* tools in its scope. Sabotage check: widening the scope fails 4 tests | Design requirement, verified by sabotage |
+| **No tool can perform a sensitive action.** `request_sensitive_action` records a ticket plus an account-change notice (modelling 47 CFR 64.2010(f)) and returns `performed: False`; an asserted test proves the account and plan are unchanged, and a name-based guard fails if a future tool is called anything like `refund` or `reset` | Design requirement, verified by test |
+| **Lockout keys are namespaced and both are checked.** A success clears only the account counter, never the client's, or an attacker holding one valid account could alternate it with guesses at others (sabotage-verified). A nonexistent account throttles exactly like a real one, or throttling itself would reveal which accounts exist (sabotage-verified) | Fix of two flaws in the source |
+| **Enumeration resistance is tested by its cause, not by timing.** Every unverified path performs exactly one key derivation; a timing assertion would be flaky, a derivation count is not (sabotage-verified) | Design requirement |
+| Lockout is persisted, so a restart does not reset an attacker (the source kept counters in memory) | Fix of a flaw in the source |
+| Known trade-off, to state in the ADR: per-account lockout lets an attacker deliberately lock a victim out. Backoff is capped at 15 minutes and `escalate_to_human` stays available to an unverified caller, which bounds the damage | Recorded trade-off |
+
+`make check` green (ruff, mypy --strict, 6 import-linter contracts, 103 tests).
