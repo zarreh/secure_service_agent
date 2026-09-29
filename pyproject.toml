@@ -17,6 +17,7 @@ dependencies = [
     "slowapi>=0.1.9",
     "httpx>=0.27",
     "zarreh-agentkit",
+    "qdrant-client>=1.9",
 ]
 
 [project.optional-dependencies]
