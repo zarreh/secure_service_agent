@@ -10,36 +10,18 @@ that detection.
 
 from __future__ import annotations
 
-import re
+from zarreh_agentkit.guardrails.injection import first_matching_rule
 
 from sentinel.schemas.guardrail import GuardrailVerdict
 
-_INJECTION_PATTERNS: dict[str, re.Pattern[str]] = {
-    "ignore-instructions": re.compile(
-        r"\bignore\s+(all\s+|the\s+)?(previous|prior|above)\s+instructions\b", re.IGNORECASE
-    ),
-    "disregard-rules": re.compile(
-        r"\bdisregard\s+(your\s+)?(rules|instructions|guidelines|policy)\b", re.IGNORECASE
-    ),
-    "reveal-system-prompt": re.compile(
-        r"\b(reveal|show|print|repeat)\s+(your\s+)?(system\s+prompt|instructions)\b",
-        re.IGNORECASE,
-    ),
-    "role-override": re.compile(
-        r"\byou\s+are\s+now\b|\bact\s+as\s+(a|an)\b|\bpretend\s+(you\s+are|to\s+be)\b",
-        re.IGNORECASE,
-    ),
-    "developer-mode": re.compile(r"\bdeveloper\s+mode\b|\bjailbreak\b", re.IGNORECASE),
-}
-
 
 def scan_input_deterministic(text: str) -> GuardrailVerdict:
-    for rule_id, pattern in _INJECTION_PATTERNS.items():
-        if pattern.search(text):
-            return GuardrailVerdict(
-                blocked=True,
-                layer="deterministic",
-                rule_id=rule_id,
-                reason=f"Matched injection pattern '{rule_id}'.",
-            )
+    rule_id = first_matching_rule(text)
+    if rule_id is not None:
+        return GuardrailVerdict(
+            blocked=True,
+            layer="deterministic",
+            rule_id=rule_id,
+            reason=f"Matched injection pattern '{rule_id}'.",
+        )
     return GuardrailVerdict(blocked=False, layer="deterministic")
