@@ -11,26 +11,18 @@ outputs, so persisting every event persists every guardrail decision.
 
 from __future__ import annotations
 
-import json
+from typing import Any
 
-import structlog
-from pydantic import BaseModel
-from zarreh_agentkit.cost import CostEntry
 from zarreh_agentkit.observability import build_tracing_callbacks
+from zarreh_agentkit.runs import execute_run
 
 from sentinel.graph.builder import SentinelGraph
-from sentinel.graph.cost_tracking import CostTrackingHandler
 from sentinel.graph.state import SentinelState
-from sentinel.observability import get_logger
 from sentinel.settings import Settings
 from sentinel.store.run_store import RunStore
 
-logger = get_logger(__name__)
-
-# Only these are genuine node boundaries: astream_events also emits
-# on_chain_end for internal LCEL sub-steps (prompt templates, parsers, the
-# routing predicates themselves), whose event names can collide with a
-# node's langgraph_node tag — filtering on name alone is not enough.
+# Only these are genuine node boundaries (execute_run also requires
+# name == langgraph_node, which drops routing predicates and LCEL sub-steps).
 _GRAPH_NODE_NAMES = frozenset(
     {
         "guardrail",
@@ -52,12 +44,6 @@ _GRAPH_NODE_NAMES = frozenset(
 )
 
 
-def _json_default(value: object) -> object:
-    if isinstance(value, BaseModel):
-        return value.model_dump(mode="json")
-    return str(value)
-
-
 async def execute_chat(
     run_id: str,
     question: str,
@@ -67,61 +53,27 @@ async def execute_chat(
     run_store: RunStore,
     settings: Settings,
 ) -> None:
-    """`pin` is used only to build the initial state passed to `graph.ainvoke`
-    equivalent below — it is never written to `run_store` and no node output
-    ever includes it (D-A4-2), so nothing here needs to scrub it after the
-    fact."""
-    structlog.contextvars.bind_contextvars(correlation_id=run_id)
-    try:
-        cost_handler = CostTrackingHandler()
-        callbacks = [
-            cost_handler,
-            *build_tracing_callbacks(settings.langsmith_api_key, settings.langsmith_project),
-        ]
-        initial: SentinelState = {
-            "question": question,
-            "account_id": account_id,
-            "pin": pin,
-        }
-        final_state: dict[str, object] = {}
-        sequence = 0
-
-        async for event in graph.astream_events(
-            initial,
-            version="v2",
-            config={"callbacks": callbacks, "metadata": {"correlation_id": run_id}},
-        ):
-            if event["event"] != "on_chain_end":
-                continue
-            metadata = event.get("metadata") or {}
-            node_name = metadata.get("langgraph_node")
-            if node_name not in _GRAPH_NODE_NAMES or event.get("name") != node_name:
-                continue
-
-            output = event.get("data", {}).get("output")
-            if isinstance(output, dict):
-                final_state.update(output)
-            run_store.append_event(
-                run_id, sequence, node_name, json.dumps(output, default=_json_default)
-            )
-            sequence += 1
-
-        run_store.record_costs(
-            run_id,
-            [
-                CostEntry(e.node, e.model, e.prompt_tokens, e.completion_tokens, e.cost_usd)
-                for e in cost_handler.entries
-            ],
-        )
-        _finalize(run_store, run_id, final_state)
-    except Exception as exc:  # noqa: BLE001 — any failure must mark the run failed
-        logger.error("chat_failed", run_id=run_id, error=str(exc))
-        run_store.fail_run(run_id, str(exc))
-    finally:
-        structlog.contextvars.unbind_contextvars("correlation_id")
+    """`pin` is used only to build the initial graph input — it is never
+    written to `run_store` (execute_run persists node *outputs* only) and no
+    node output ever includes it (D-A4-2), so nothing here needs to scrub it
+    after the fact."""
+    initial: SentinelState = {
+        "question": question,
+        "account_id": account_id,
+        "pin": pin,
+    }
+    await execute_run(
+        run_id=run_id,
+        graph=graph,
+        graph_input=initial,
+        store=run_store,
+        finalize=lambda final_state: _finalize(run_store, run_id, final_state),
+        callbacks=build_tracing_callbacks(settings.langsmith_api_key, settings.langsmith_project),
+        node_names=_GRAPH_NODE_NAMES,
+    )
 
 
-def _finalize(run_store: RunStore, run_id: str, final_state: dict[str, object]) -> None:
+def _finalize(run_store: RunStore, run_id: str, final_state: dict[str, Any]) -> None:
     response = final_state.get("response")
     if isinstance(response, str):
         run_store.complete_run(run_id, response)

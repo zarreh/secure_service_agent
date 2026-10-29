@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 
 from pydantic import BaseModel
+from zarreh_agentkit.runs import RunEvent
 
 
 class PolicyClause(BaseModel):
@@ -77,12 +78,4 @@ class RunRecord:
     error: str | None
 
 
-@dataclass(frozen=True)
-class RunEvent:
-    """One persisted node step, in the same shape the SSE stream emits."""
-
-    run_id: str
-    sequence: int
-    node: str
-    payload_json: str
-    created_at: str
+__all__ = ["Account", "MemoryEvent", "Plan", "PolicyClause", "RunEvent", "RunRecord"]
