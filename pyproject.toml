@@ -99,4 +99,4 @@ source_modules = ["sentinel.tools"]
 forbidden_modules = ["sentinel.graph"]
 
 [tool.uv.sources]
-zarreh-agentkit = { git = "https://github.com/zarreh/zarreh_agentkit.git", tag = "v0.2.0" }
+zarreh-agentkit = { git = "https://github.com/zarreh/zarreh_agentkit.git", tag = "v0.3.0" }
